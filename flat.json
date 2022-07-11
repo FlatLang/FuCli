@@ -1,0 +1,21 @@
+{
+  "name": "FuCli",
+  "version": "0.1.0",
+  "description": "Flat User-friendly CLI :)",
+  "author": "Braden Steffaniak",
+  "license": "ISC",
+  "scripts": {},
+  "main": {
+    "source": "src/main",
+    "dependencies": {
+      "../Compiler-String-Extensions": "local"
+    }
+  },
+  "test": {
+    "mainClass": "flatlang/fucli/FuCli_TestSuite",
+    "source": "src",
+    "dependencies": {
+      "../Nest": "local"
+    }
+  }
+}

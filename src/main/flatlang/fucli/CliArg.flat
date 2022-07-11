@@ -1,0 +1,58 @@
+package "flatlang/fucli"
+
+class {
+  var Bool enabled = false
+
+  var String value {
+    get {
+      return values.first
+    }
+
+    set {
+      if (values.isEmpty) {
+        values = [value]
+      } else {
+        values[0] = value
+      }
+    }
+  }
+
+  visible String[] values = new Array<String>()
+
+  public construct(
+    String name,
+    String[] aliases = new Array<String>(),
+    Int: count = 0
+  ) {
+    this(
+      name,
+      aliases,
+      minCount: count,
+      maxCount: count
+    )
+  }
+
+  public construct(
+    String name,
+    Int: minCount,
+    Int: maxCount = -1
+  ) {
+    this(
+      name,
+      new Array<String>(),
+      minCount: minCount,
+      maxCount: maxCount
+    )
+  }
+
+  public construct(
+    visible String name,
+    visible String[] aliases,
+    visible Int: minCount,
+    visible Int: maxCount = -1
+  ) {
+
+  }
+
+  public matches(String value) => value == name || aliases.any({ value == _ })
+}
