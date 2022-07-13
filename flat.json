@@ -7,15 +7,13 @@
   "scripts": {},
   "main": {
     "source": "src/main",
-    "dependencies": {
-      "../Compiler-String-Extensions": "local"
-    }
+    "dependencies": {}
   },
   "test": {
     "mainClass": "flatlang/fucli/FuCli_TestSuite",
     "source": "src",
     "dependencies": {
-      "../Nest": "local"
+      "github:FlatLang/Nest": "master"
     }
   }
 }
