@@ -17,11 +17,11 @@ class {
     }
   }
 
-  visible String[] values = new Array<String>()
+  visible String[] values = Array<String>()
 
   public construct(
     String name,
-    String[] aliases = new Array<String>(),
+    String[] aliases = Array<String>(),
     Int: count = 0
   ) {
     this(
@@ -39,7 +39,7 @@ class {
   ) {
     this(
       name,
-      new Array<String>(),
+      Array<String>(),
       minCount: minCount,
       maxCount: maxCount
     )

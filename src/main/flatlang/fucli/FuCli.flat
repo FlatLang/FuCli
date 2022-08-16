@@ -20,7 +20,7 @@ class {
 
         while (argsIterator.hasNext) {
           if (arg.maxCount != -1 && i++ > arg.maxCount) {
-            throw new InvalidCliArgumentException(argsIterator.current)
+            throw InvalidCliArgumentException(argsIterator.current)
           }
 
           if (arg.values.count >= arg.minCount && getArg(argsIterator.next)) {
@@ -31,10 +31,10 @@ class {
         }
 
         if (arg.values.count < arg.minCount) {
-          throw new InvalidCliArgumentException(value)
+          throw InvalidCliArgumentException(value)
         }
       } else {
-        throw new InvalidCliArgumentException(value)
+        throw InvalidCliArgumentException(value)
       }
     }
   }
