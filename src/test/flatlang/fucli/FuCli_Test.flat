@@ -1,0 +1,11 @@
+package flatlang/fucli
+
+import flatlang/fucli/FuCli
+
+testable class {
+  test `can create`() {
+    let value = FuCli(Array())
+
+    expect(value).toNotBe(null)
+  }
+}
