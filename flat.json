@@ -8,12 +8,12 @@
     "test": "node dist/test.js"
   },
   "main": {
-    "source": "src/main",
+    "source": "src",
     "dependencies": {}
   },
   "test": {
     "mainClass": "flatlang/fucli/FuCli_TestSuite",
-    "source": "src",
+    "source": "src/**/*_Test*.flat",
     "dependencies": {
       "github:FlatLang/Nest": "master",
       "github:FlatLang/System": "master",
