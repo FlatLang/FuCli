@@ -44,4 +44,6 @@ class {
   class InvalidCliArgumentException extends Exception {
     public construct(String argument) => super("Invalid CLI argument: '#argument'")
   }
+
+  override public toString() => args.filter({ _.enabled }).join(" ")
 }

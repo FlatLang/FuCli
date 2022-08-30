@@ -55,4 +55,6 @@ class {
   }
 
   public matches(String value) => value == name || aliases.any({ value == _ })
+
+  override public toString() => values.count > 0 ? "#name #{values.join(" ")}" : name
 }
