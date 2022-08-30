@@ -2,12 +2,14 @@
   "scripts": {
     "test": "node dist/test.js"
   },
-  "main": {
-    "dependencies": {}
-  },
-  "test": {
-    "outDirectory": "dist",
-    "outFile": "test.js",
-    "dependencies": {}
+  "sources": {
+    "main": {
+      "dependencies": {}
+    },
+    "test": {
+      "outDirectory": "dist",
+      "outFile": "test.js",
+      "dependencies": {}
+    }
   }
 }
