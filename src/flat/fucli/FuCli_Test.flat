@@ -1,6 +1,6 @@
-package flatlang/fucli
+package flat/fucli
 
-import flatlang/fucli/FuCli
+import flat/fucli/FuCli
 
 testable class {
   test `can create`() {

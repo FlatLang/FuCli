@@ -1,4 +1,4 @@
-package flatlang/fucli
+package flat/fucli
 
 class {
   public construct(
