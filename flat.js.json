@@ -7,7 +7,6 @@
       "dependencies": {}
     },
     "test": {
-      "outDirectory": "dist",
       "outFile": "test.js",
       "dependencies": {}
     }
