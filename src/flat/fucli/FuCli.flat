@@ -2,10 +2,10 @@ package flat/fucli
 
 class {
   public construct(
-    visible CliArg[] args
-  ) {
-
-  }
+    visible CliArg[] args,
+    visible String: description = null,
+    visible String: usage = null
+  ) {}
 
   public parse(List<String> strArgs) {
     let argsIterator = strArgs.iterator
@@ -43,6 +43,74 @@ class {
 
   class InvalidCliArgumentException extends Exception {
     public construct(String argument) => super("Invalid CLI argument: '#argument'")
+  }
+
+  public getHelpString(
+    Bool formatted = true
+  ) -> String {
+    var str = ""
+
+    if (description) {
+      str += description
+    }
+
+    let gutterSize = 4
+    let gutter = " ".repeat(gutterSize)
+
+    if (usage) {
+      if (str.isNotEmpty) str += "\n\n"
+
+      str += "|
+        USAGE:
+        #{gutter}#{usage}
+        |"
+    }
+
+    let commands = args.filter({ !_.name.startsWith("--") })
+    let options = args.filter({ _.name.startsWith("--") })
+
+    let Int commandsGutterSpace = commands.max({ _x.name.count + (_x.aliases != null ? _x.aliases.sum({ _.count + 2 }) : 0) }) + gutterSize
+    let Int optionsGutterSpace = options.max({ _x.name.count + (_x.aliases != null ? _x.aliases.sum({ _.count + 2 }) : 0) }) + gutterSize
+
+    let commandDescriptions = commands.map((arg) => {
+      let aliases = arg.aliases?.isNotEmpty ? arg.aliases.stitchFront(", ") : ""
+      let argNames = "#{arg.name}#{aliases}"
+
+      if (arg.description) {
+        let argGutter = " ".repeat(commandsGutterSpace - argNames.count)
+        return "#{gutter}#{argNames}#{argGutter}#{arg.description}"
+      } else {
+        return "#{gutter}#{argNames}"
+      }
+    })
+
+    if (commandDescriptions.isNotEmpty) {
+      if (str.isNotEmpty) str += "\n\n"
+
+      str += "COMMANDS:\n"
+      str += commandDescriptions.join("\n")
+    }
+
+    let optionDescriptions = options.map((arg) => {
+      let aliases = arg.aliases?.isNotEmpty ? arg.aliases.stitchFront(", ") : ""
+      let argNames = "#{arg.name}#{aliases}"
+
+      if (arg.description) {
+        let argGutter = " ".repeat(optionsGutterSpace - argNames.count)
+        return "#{gutter}#{argNames}#{argGutter}#{arg.description}"
+      } else {
+        return "#{gutter}#{argNames}"
+      }
+    })
+
+    if (optionDescriptions.isNotEmpty) {
+      if (str.isNotEmpty) str += "\n\n"
+
+      str += "OPTIONS:\n"
+      str += optionDescriptions.join("\n")
+    }
+
+    return str
   }
 
   override public toString() => args.filter({ _.enabled }).join(" ")
