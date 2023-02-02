@@ -1,6 +1,12 @@
 package flat/fucli
 
+import flat/log
+
 class {
+  static Logger log = Logger(FuCli.class)
+
+  visible CliArg[] usedArgs = CliArg[]
+
   public construct(
     visible CliArg[] args,
     visible String: description = null,
@@ -13,21 +19,22 @@ class {
     while (argsIterator.hasNext) {
       let value = argsIterator.stepNext
 
+      log.debug("Searching for arg for value \"#{value}\"")
       if (let arg = getArg(value)) {
+        log.debug("Got arg for value \"#{value}\": #{arg}")
+        usedArgs.add(arg)
         arg.enabled = true
 
-        var Int i = 0
-
         while (argsIterator.hasNext) {
-          if (arg.maxCount != -1 && i++ > arg.maxCount) {
-            throw InvalidCliArgumentException(argsIterator.current)
-          }
+          if (arg.values.count < arg.minCount) { // if not reached minimum values for argument yet
+            arg.values.add(argsIterator.stepNext)
+          } else if (arg.maxCount == -1 || arg.values.count < arg.maxCount) { // if not reached maximum values for argument yet
+            if (getArg(argsIterator.next)) break
 
-          if (arg.values.count >= arg.minCount && getArg(argsIterator.next)) {
+            arg.values.add(argsIterator.stepNext)
+          } else {
             break
           }
-
-          arg.values.add(argsIterator.stepNext)
         }
 
         if (arg.values.count < arg.minCount) {
@@ -39,7 +46,14 @@ class {
     }
   }
 
-  getArg(String value) => args.firstWhere({ _.matches(value) })
+  getArg(String value) -> CliArg => null {
+    if (let childArg = usedArgs.lastNonNull({ _.getArg(value) })) {
+      return childArg
+    }
+    if (let globalArg = args.firstWhere({ _.matches(value) })) {
+      return globalArg
+    }
+  }
 
   class InvalidCliArgumentException extends Exception {
     public construct(String argument) => super("Invalid CLI argument: '#argument'")

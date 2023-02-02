@@ -10,7 +10,11 @@
   "sources": {
     "main": {
       "source": "src",
-      "dependencies": {}
+      "dependencies": {
+        "github:FlatLang/System": "master",
+        "github:FlatLang/IO": "master",
+        "github:FlatLang/Logger": "master"
+      }
     },
     "test": {
       "mainClass": "flat/fucli/FuCli_TestSuite",
