@@ -164,7 +164,7 @@ class {
     CliArg[] breadcrumbs,
     Bool formatted = true
   ) -> String[] {
-    let header = breadcrumbs.count > 1 ? "`#{breadcrumbs.join(" ")}`:\n\n" : ""
+    let header = breadcrumbs.count > 1 ? "`#{breadcrumbs.join(" ")}`\n\n" : ""
     let help = getHelpString(breadcrumbs, false, formatted)
     let strings = [header + help]
 
