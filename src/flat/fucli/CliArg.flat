@@ -66,5 +66,98 @@ class {
 
   public getArg(String value) => args?.firstWhere({ _.matches(value) })
 
+  static getUsageString(
+    CliArg[] breadcrumbs,
+    CliArg[] commands,
+    CliArg[] options
+  ) -> String {
+    let usageValues = breadcrumbs.map({ _.name })
+
+    if (commands.isNotEmpty) {
+      usageValues.add("<COMMAND>")
+    }
+
+    if (options.isNotEmpty) {
+      usageValues.add("[OPTIONS]")
+    }
+
+    return usageValues.join(" ")
+  }
+
+  public getHelpString(
+    CliArg[] breadcrumbs,
+    Bool formatted = true
+  ) -> String {
+    var str = ""
+
+    if (description) {
+      str += "#{description}\n\n"
+    }
+
+    let gutterSize = 4
+    let gutter = " ".repeat(gutterSize)
+
+    let commands = args.filter({ !_.name.startsWith("--") })
+    let options = args.filter({ _.name.startsWith("--") })
+
+    let usage = getUsageString(breadcrumbs, commands, options)
+
+    str += "|
+      USAGE:
+      #{gutter}#{usage}
+      |"
+
+    let Int commandsGutterSpace = commands.max({ _x.name.count + (_x.aliases != null ? _x.aliases.sum({ _.count + 2 }) : 0) }) + gutterSize
+    let Int optionsGutterSpace = options.max({ _x.name.count + (_x.aliases != null ? _x.aliases.sum({ _.count + 2 }) : 0) }) + gutterSize
+
+    let commandDescriptions = commands.map((arg) => {
+      let aliases = arg.aliases?.isNotEmpty ? arg.aliases.stitchFront(", ") : ""
+      let argNames = "#{arg.name}#{aliases}"
+
+      if (arg.description) {
+        let argGutter = " ".repeat(commandsGutterSpace - argNames.count)
+        return "#{gutter}#{argNames}#{argGutter}#{arg.description}"
+      } else {
+        return "#{gutter}#{argNames}"
+      }
+    })
+
+    if (commandDescriptions.isNotEmpty) {
+      str += "\n\nCOMMANDS:\n"
+      str += commandDescriptions.join("\n")
+    }
+
+    let optionDescriptions = options.map((arg) => {
+      let aliases = arg.aliases?.isNotEmpty ? arg.aliases.stitchFront(", ") : ""
+      let argNames = "#{arg.name}#{aliases}"
+
+      if (arg.description) {
+        let argGutter = " ".repeat(optionsGutterSpace - argNames.count)
+        return "#{gutter}#{argNames}#{argGutter}#{arg.description}"
+      } else {
+        return "#{gutter}#{argNames}"
+      }
+    })
+
+    if (optionDescriptions.isNotEmpty) {
+      str += "\n\nOPTIONS:\n"
+      str += optionDescriptions.join("\n")
+    }
+
+    if (commands.isNotEmpty || options.isNotEmpty) {
+      let binaryName = breadcrumbs.first.name
+
+      if (options.isEmpty) {
+        str += "\n\nSee '#{binaryName} help#{breadcrumbs.skip(1).stitchFront(" ")} <COMMAND>' for more information on a specific command"
+      } else if (commands.isEmpty) {
+        str += "\n\nSee '#{binaryName} help#{breadcrumbs.skip(1).stitchFront(" ")} <OPTION>' for more information on a specific option"
+      } else {
+        str += "\n\nSee '#{binaryName} help#{breadcrumbs.skip(1).stitchFront(" ")} <COMMAND/OPTION>' for more information on a specific command or option"
+      }
+    }
+
+    return str
+  }
+
   override public toString() => values.count > 0 ? "#name #{values.join(" ")}" : name
 }
