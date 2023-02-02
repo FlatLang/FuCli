@@ -24,7 +24,6 @@ class {
     String[] aliases = Array<String>(),
     Int: count = 0,
     String: description = null,
-    String: usage = null,
     CliArg[]: args = null
   ) {
     this(
@@ -33,7 +32,6 @@ class {
       minCount: count,
       maxCount: count,
       description: description,
-      usage: usage,
       args: args
     )
   }
@@ -43,7 +41,6 @@ class {
     Int: minCount,
     Int: maxCount = -1,
     String: description = null,
-    String: usage = null,
     CliArg[]: args = null
   ) {
     this(
@@ -52,7 +49,6 @@ class {
       minCount: minCount,
       maxCount: maxCount,
       description: description,
-      usage: usage,
       args: args
     )
   }
@@ -63,7 +59,6 @@ class {
     visible Int: minCount,
     visible Int: maxCount = -1,
     visible String: description = null,
-    visible String: usage = null,
     visible CliArg[]: args = null
   ) {}
 

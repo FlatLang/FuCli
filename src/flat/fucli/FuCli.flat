@@ -10,8 +10,7 @@ class {
   public construct(
     visible String binaryName,
     visible CliArg[] args,
-    visible String: description = null,
-    visible String: usage = null
+    visible String: description = null
   ) {}
 
   public parse(List<String> strArgs) {
@@ -64,7 +63,7 @@ class {
     Bool formatted = true
   ) -> String {
     if (usedArgs.count == 1) {
-      return getHelpString(binaryName, Array(), args, description, usage, formatted)
+      return getHelpString(binaryName, Array(), args, description, formatted)
     }
 
     let arg = usedArgs.last
@@ -73,9 +72,29 @@ class {
       binaryName,
       usedArgs.skip(1),
       arg.args ?: Array(),
-      arg.description,
-      arg.usage
+      arg.description
     )
+  }
+
+  static getUsageString(
+    String binaryName,
+    CliArg[] breadcrumbs,
+    CliArg[] commands,
+    CliArg[] options
+  ) -> String {
+    let usageValues = [binaryName]
+
+    usageValues.addAll(breadcrumbs.map({ _.name }))
+
+    if (commands.isNotEmpty) {
+      usageValues.add("<COMMAND>")
+    }
+
+    if (options.isNotEmpty) {
+      usageValues.add("[OPTIONS]")
+    }
+
+    return usageValues.join(" ")
   }
 
   static getHelpString(
@@ -83,7 +102,6 @@ class {
     CliArg[] breadcrumbs,
     CliArg[] args,
     String description,
-    String usage,
     Bool formatted = true
   ) -> String {
     var str = ""
@@ -98,31 +116,12 @@ class {
     let commands = args.filter({ !_.name.startsWith("--") })
     let options = args.filter({ _.name.startsWith("--") })
 
-    if (usage) {
-      str += "|
-        USAGE:
-        #{gutter}#{usage}
-        |"
-    } else {
-      let usageValues = [binaryName]
+    let usage = getUsageString(binaryName, breadcrumbs, commands, options)
 
-      usageValues.addAll(breadcrumbs.map({ _.name }))
-
-      if (commands.isNotEmpty) {
-        usageValues.add("<COMMAND>")
-      }
-
-      if (options.isNotEmpty) {
-        usageValues.add("[OPTIONS]")
-      }
-
-      let usageStr = usageValues.join(" ")
-
-      str += "|
-        USAGE:
-        #{gutter}#{usageStr}
-        |"
-    }
+    str += "|
+      USAGE:
+      #{gutter}#{usage}
+      |"
 
     let Int commandsGutterSpace = commands.max({ _x.name.count + (_x.aliases != null ? _x.aliases.sum({ _.count + 2 }) : 0) }) + gutterSize
     let Int optionsGutterSpace = options.max({ _x.name.count + (_x.aliases != null ? _x.aliases.sum({ _.count + 2 }) : 0) }) + gutterSize
