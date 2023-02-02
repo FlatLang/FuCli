@@ -171,7 +171,7 @@ class {
     if (!args || args.isEmpty) return strings
 
     return strings:addAll(args.flatMap((arg) => {
-      return arg.getAllHelpStrings(breadcrumbs.plus([arg]), formatted)
+      arg.getAllHelpStrings(breadcrumbs.plus([arg]), formatted)
     }))
   }
 
