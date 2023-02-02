@@ -71,22 +71,22 @@ class {
     public construct(String argument) => super("Invalid CLI argument: '#argument'")
   }
 
-  public getHelpString(
+  public getHelp(
     Bool formatted = true
-  ) -> String {
+  ) -> CliArgHelp {
     let helpArgs = [binaryArg]
     helpArgs.addAll(usedArgs.skip(1))
 
-    return helpArgs.last.getHelpString(helpArgs)
+    return helpArgs.last.getHelp(helpArgs)
   }
 
-  public getAllHelpStrings(
+  public getAllHelp(
     Bool formatted = true
-  ) -> String[] {
+  ) -> CliArgHelp[] {
     let helpArgs = [binaryArg]
     helpArgs.addAll(usedArgs.skip(1))
 
-    return helpArgs.last.getAllHelpStrings(helpArgs)
+    return helpArgs.last.getAllHelp(helpArgs)
   }
 
   override public toString() => args.filter({ _.enabled }).join(" ")

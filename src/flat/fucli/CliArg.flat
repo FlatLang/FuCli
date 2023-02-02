@@ -84,11 +84,11 @@ class {
     return usageValues.join(" ")
   }
 
-  public getHelpString(
+  public getHelp(
     CliArg[] breadcrumbs,
     Bool printHelpLine = true,
     Bool formatted = true
-  ) -> String {
+  ) -> CliArgHelp {
     var str = ""
 
     if (description) {
@@ -157,21 +157,23 @@ class {
       }
     }
 
-    return str
+    return CliArgHelp(
+      arg: this,
+      breadcrumbs: breadcrumbs,
+      help: str
+    )
   }
 
-  public getAllHelpStrings(
+  public getAllHelp(
     CliArg[] breadcrumbs,
     Bool formatted = true
-  ) -> String[] {
-    let header = breadcrumbs.count > 1 ? "`#{breadcrumbs.join(" ")}`\n\n" : ""
-    let help = getHelpString(breadcrumbs, false, formatted)
-    let strings = [header + help]
+  ) -> CliArgHelp[] {
+    let help = [getHelp(breadcrumbs, false, formatted)]
 
-    if (!args || args.isEmpty) return strings
+    if (!args || args.isEmpty) return help
 
-    return strings:addAll(args.flatMap((arg) => {
-      arg.getAllHelpStrings(breadcrumbs.plus([arg]), formatted)
+    return help:addAll(args.flatMap((arg) => {
+      arg.getAllHelp(breadcrumbs.plus([arg]), formatted)
     }))
   }
 
