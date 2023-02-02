@@ -86,6 +86,7 @@ class {
 
   public getHelpString(
     CliArg[] breadcrumbs,
+    Bool printHelpLine = true,
     Bool formatted = true
   ) -> String {
     var str = ""
@@ -97,8 +98,8 @@ class {
     let gutterSize = 4
     let gutter = " ".repeat(gutterSize)
 
-    let commands = args.filter({ !_.name.startsWith("--") })
-    let options = args.filter({ _.name.startsWith("--") })
+    let commands = args?.filter({ !_.name.startsWith("--") }) ?: Array()
+    let options = args?.filter({ _.name.startsWith("--") }) ?: Array()
 
     let usage = getUsageString(breadcrumbs, commands, options)
 
@@ -144,7 +145,7 @@ class {
       str += optionDescriptions.join("\n")
     }
 
-    if (commands.isNotEmpty || options.isNotEmpty) {
+    if (printHelpLine && (commands.isNotEmpty || options.isNotEmpty)) {
       let binaryName = breadcrumbs.first.name
 
       if (options.isEmpty) {
@@ -157,6 +158,21 @@ class {
     }
 
     return str
+  }
+
+  public getAllHelpStrings(
+    CliArg[] breadcrumbs,
+    Bool formatted = true
+  ) -> String[] {
+    let header = breadcrumbs.count > 1 ? "`#{breadcrumbs.join(" ")}`:\n\n" : ""
+    let help = getHelpString(breadcrumbs, false, formatted)
+    let strings = [header + help]
+
+    if (!args || args.isEmpty) return strings
+
+    return strings:addAll(args.flatMap((arg) => {
+      return arg.getAllHelpStrings(breadcrumbs.plus([arg]), formatted)
+    }))
   }
 
   override public toString() => values.count > 0 ? "#name #{values.join(" ")}" : name

@@ -80,5 +80,14 @@ class {
     return helpArgs.last.getHelpString(helpArgs)
   }
 
+  public getAllHelpStrings(
+    Bool formatted = true
+  ) -> String[] {
+    let helpArgs = [binaryArg]
+    helpArgs.addAll(usedArgs.skip(1))
+
+    return helpArgs.last.getAllHelpStrings(helpArgs)
+  }
+
   override public toString() => args.filter({ _.enabled }).join(" ")
 }
