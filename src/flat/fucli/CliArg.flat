@@ -94,7 +94,7 @@ class {
     if (CliArg wildcardMatch = args.stream().filter({ _.wildcard }).first) return wildcardMatch
   }
 
-  static getUsageString(
+  getUsageString(
     CliArg[] breadcrumbs,
     CliArg[] arguments,
     CliArg[] commands,
@@ -102,15 +102,21 @@ class {
   ) -> String {
     let usageValues = breadcrumbs.map({ _.name })
 
-    if (arguments.isNotEmpty) {
+    if (arguments.count == 1) {
+      usageValues.add("<#{arguments.first.name}>")
+    } else if (arguments.isNotEmpty) {
       usageValues.add("<arguments>")
     }
 
-    if (commands.isNotEmpty) {
+    if (commands.count == 1) {
+      usageValues.add("<#{commands.first.name}>")
+    } else if (commands.isNotEmpty) {
       usageValues.add("<command>")
     }
 
-    if (options.isNotEmpty) {
+    if (options.count == 1) {
+      usageValues.add("[#{options.first.name}]")
+    } else if (options.isNotEmpty) {
       usageValues.add("[options]")
     }
 
