@@ -52,14 +52,31 @@ class {
             break
           }
         }
-
-        if (arg.values.count < arg.minCount) {
-          throw InvalidCliArgumentException(value)
-        }
       } else {
         throw InvalidCliArgumentException(value)
       }
     }
+
+    if (usedArgs.isEmpty || usedArgs.first.name != "help") {
+      usedArgs.forEach(validateArg)
+    }
+  }
+
+  validateArg(CliArg arg) {
+    log.debug("|
+      Validating arg #{arg.name}
+        required: #{arg.required}
+        values: #{arg.values}
+        minCount: #{arg.minCount}
+        maxCount: #{arg.maxCount}
+      |")
+    if (arg.required && arg.values.count < arg.minCount) {
+      throw RequiredCliArgumentException(arg)
+    }
+
+    if (!arg.args) return
+
+    arg.args.forEach(validateArg)
   }
 
   getArg(String value) -> CliArg => null {
@@ -70,7 +87,17 @@ class {
   }
 
   class InvalidCliArgumentException extends Exception {
-    public construct(String argument) => super("Invalid CLI argument: '#argument'")
+    public construct(String argument) =>
+      super("Invalid CLI argument: '#argument'")
+  }
+
+  class RequiredCliArgumentException extends Exception {
+    public construct(CliArg arg) =>
+      super(
+        arg.minCount == 1
+          ? "CLI argument #{arg} is required but was not given"
+          : "#{arg.minCount} #{arg} CLI arguments are required but #{arg.values.count == 0 ? "0 were" : (arg.values.count == 1 ? "only 1 was" : "only #{arg.values.count} were")} given"
+      )
   }
 
   public getHelp(

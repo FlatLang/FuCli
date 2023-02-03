@@ -31,7 +31,8 @@ class {
     Int: count = 0,
     String: description = null,
     CliArg[]: args = null,
-    Bool: wildcard = false
+    Bool: wildcard = false,
+    Bool: required = false
   ) {
     this(
       name,
@@ -40,7 +41,8 @@ class {
       maxCount: count,
       description: description,
       args: args,
-      wildcard: wildcard
+      wildcard: wildcard,
+      required: required
     )
   }
 
@@ -50,7 +52,8 @@ class {
     Int: maxCount = -1,
     String: description = null,
     CliArg[]: args = null,
-    Bool: wildcard = false
+    Bool: wildcard = false,
+    Bool: required = false
   ) {
     this(
       name,
@@ -59,7 +62,8 @@ class {
       maxCount: maxCount,
       description: description,
       args: args,
-      wildcard: wildcard
+      wildcard: wildcard,
+      required: required
     )
   }
 
@@ -70,7 +74,8 @@ class {
     visible Int: maxCount = -1,
     visible String: description = null,
     visible CliArg[]: args = null,
-    visible Bool: wildcard = false
+    visible Bool: wildcard = false,
+    visible Bool: required = false
   ) {}
 
   public matches(String value) => wildcard || value == name || aliases.any({ value == _ })
