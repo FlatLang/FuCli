@@ -84,14 +84,22 @@ class {
     if (!args) return null
 
     log.trace("Searching #{name} non-wildcard args: #{args.stream().filter({ !_.wildcard }).toArray()}")
-    if (CliArg nonWildcardArg = args.stream().filter({ !_.wildcard }).filter({ _.matches(value) }).first) return nonWildcardArg
+
+    return args.stream()
+      .filter({ !_.wildcard })
+      .filter({ _.matches(value) })
+      .first
   }
 
   public getWildcardArg(String value) -> CliArg => null {
     if (!args) return null
 
     log.trace("Searching #{name} wildcard args: #{args.stream().filter({ _.wildcard }).toArray()}")
-    if (CliArg wildcardMatch = args.stream().filter({ _.wildcard }).first) return wildcardMatch
+
+    return args.stream()
+      .filter({ _.wildcard })
+      .filter({ _x.maxCount == -1 || _x.values.count < _x.maxCount })
+      .first
   }
 
   getUsageString(
@@ -100,7 +108,7 @@ class {
     CliArg[] commands,
     CliArg[] options
   ) -> String {
-    let usageValues = breadcrumbs.map({ _.name })
+    let usageValues = breadcrumbs.map({ _.toString() })
 
     if (arguments.count == 1) {
       usageValues.add("<#{arguments.first.name}>")

@@ -40,18 +40,6 @@ class {
         arg.enabled = true
 
         if (arg.wildcard) arg.values.add(value)
-
-        while (argsIterator.hasNext) {
-          if (arg.values.count < arg.minCount) { // if not reached minimum values for argument yet
-            arg.values.add(argsIterator.stepNext)
-          } else if (arg.maxCount == -1 || arg.values.count < arg.maxCount) { // if not reached maximum values for argument yet
-            if (getArg(argsIterator.next)) break
-
-            arg.values.add(argsIterator.stepNext)
-          } else {
-            break
-          }
-        }
       } else {
         throw InvalidCliArgumentException(value)
       }
@@ -80,9 +68,13 @@ class {
   }
 
   getArg(String value) -> CliArg => null {
-    if (CliArg childArg = usedArgs.last?.getArg(value)) return childArg
+    log.debug("Searching non-wildcard sub-arguments for #{usedArgs.lastWhere({ _.args != null })}")
+    if (CliArg childArg = usedArgs.lastWhere({ _.args != null })?.getArg(value)) return childArg
+    log.debug("Searching non-wildcard global arguments")
     if (CliArg globalArg = binaryArg.getArg(value)) return globalArg
-    if (CliArg childWildcardArg = usedArgs.last?.getWildcardArg(value)) return childWildcardArg
+    log.debug("Searching wildcard sub-arguments for #{usedArgs.lastWhere({ _.args != null })}")
+    if (CliArg childWildcardArg = usedArgs.lastWhere({ _.args != null })?.getWildcardArg(value)) return childWildcardArg
+    log.debug("Searching wildcard global arguments")
     if (CliArg globalWildcardArg = binaryArg.getWildcardArg(value)) return globalWildcardArg
   }
 
