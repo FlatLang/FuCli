@@ -1,7 +1,13 @@
 package flat/fucli
 
+import flat/log
+
 class {
+  static Logger log = Logger(CliArg.class)
+
   var Bool enabled = false
+
+  this[String argName] => args.firstWhere({ _.name == argName })
 
   var String value {
     get {
@@ -24,7 +30,8 @@ class {
     String[] aliases = Array<String>(),
     Int: count = 0,
     String: description = null,
-    CliArg[]: args = null
+    CliArg[]: args = null,
+    Bool: wildcard = false
   ) {
     this(
       name,
@@ -32,7 +39,8 @@ class {
       minCount: count,
       maxCount: count,
       description: description,
-      args: args
+      args: args,
+      wildcard: wildcard
     )
   }
 
@@ -41,7 +49,8 @@ class {
     Int: minCount,
     Int: maxCount = -1,
     String: description = null,
-    CliArg[]: args = null
+    CliArg[]: args = null,
+    Bool: wildcard = false
   ) {
     this(
       name,
@@ -49,7 +58,8 @@ class {
       minCount: minCount,
       maxCount: maxCount,
       description: description,
-      args: args
+      args: args,
+      wildcard: wildcard
     )
   }
 
@@ -59,26 +69,44 @@ class {
     visible Int: minCount,
     visible Int: maxCount = -1,
     visible String: description = null,
-    visible CliArg[]: args = null
+    visible CliArg[]: args = null,
+    visible Bool: wildcard = false
   ) {}
 
-  public matches(String value) => value == name || aliases.any({ value == _ })
+  public matches(String value) => wildcard || value == name || aliases.any({ value == _ })
 
-  public getArg(String value) => args?.firstWhere({ _.matches(value) })
+  public getArg(String value) -> CliArg => null {
+    if (!args) return null
+
+    log.trace("Searching #{name} non-wildcard args: #{args.stream().filter({ !_.wildcard }).toArray()}")
+    if (CliArg nonWildcardArg = args.stream().filter({ !_.wildcard }).filter({ _.matches(value) }).first) return nonWildcardArg
+  }
+
+  public getWildcardArg(String value) -> CliArg => null {
+    if (!args) return null
+
+    log.trace("Searching #{name} wildcard args: #{args.stream().filter({ _.wildcard }).toArray()}")
+    if (CliArg wildcardMatch = args.stream().filter({ _.wildcard }).first) return wildcardMatch
+  }
 
   static getUsageString(
     CliArg[] breadcrumbs,
+    CliArg[] arguments,
     CliArg[] commands,
     CliArg[] options
   ) -> String {
     let usageValues = breadcrumbs.map({ _.name })
 
+    if (arguments.isNotEmpty) {
+      usageValues.add("<arguments>")
+    }
+
     if (commands.isNotEmpty) {
-      usageValues.add("<COMMAND>")
+      usageValues.add("<command>")
     }
 
     if (options.isNotEmpty) {
-      usageValues.add("[OPTIONS]")
+      usageValues.add("[options]")
     }
 
     return usageValues.join(" ")
@@ -98,18 +126,36 @@ class {
     let gutterSize = 4
     let gutter = " ".repeat(gutterSize)
 
-    let commands = args?.filter({ !_.name.startsWith("--") }) ?: Array()
-    let options = args?.filter({ _.name.startsWith("--") }) ?: Array()
+    let arguments = args?.filter({ _.wildcard }) ?: Array()
+    let commands = args?.filter({ !_x.wildcard && !_x.name.startsWith("--") }) ?: Array()
+    let options = args?.filter({ !_x.wildcard && _x.name.startsWith("--") }) ?: Array()
 
-    let usage = getUsageString(breadcrumbs, commands, options)
+    let usage = getUsageString(breadcrumbs, arguments, commands, options)
 
     str += "|
-      USAGE:
+      Usage:
       #{gutter}#{usage}
       |"
 
+    let Int argumentsGutterSpace = arguments.max({ _x.name.count + 2 + (_x.aliases != null ? _x.aliases.sum({ _.count + 4 }) : 0) }) + gutterSize
+
+    let argumentDescriptions = arguments.map((arg) => {
+      let argName = "<#{arg.name}>"
+
+      if (arg.description) {
+        let argGutter = " ".repeat(argumentsGutterSpace - argName.count)
+        return "#{gutter}#{argName}#{argGutter}#{arg.description}"
+      } else {
+        return "#{gutter}#{argName}"
+      }
+    })
+
+    if (argumentDescriptions.isNotEmpty) {
+      str += "\n\nArguments:\n"
+      str += argumentDescriptions.join("\n")
+    }
+
     let Int commandsGutterSpace = commands.max({ _x.name.count + (_x.aliases != null ? _x.aliases.sum({ _.count + 2 }) : 0) }) + gutterSize
-    let Int optionsGutterSpace = options.max({ _x.name.count + (_x.aliases != null ? _x.aliases.sum({ _.count + 2 }) : 0) }) + gutterSize
 
     let commandDescriptions = commands.map((arg) => {
       let aliases = arg.aliases?.isNotEmpty ? arg.aliases.stitchFront(", ") : ""
@@ -124,9 +170,11 @@ class {
     })
 
     if (commandDescriptions.isNotEmpty) {
-      str += "\n\nCOMMANDS:\n"
+      str += "\n\nCommands:\n"
       str += commandDescriptions.join("\n")
     }
+
+    let Int optionsGutterSpace = options.max({ _x.name.count + (_x.aliases != null ? _x.aliases.sum({ _.count + 2 }) : 0) }) + gutterSize
 
     let optionDescriptions = options.map((arg) => {
       let aliases = arg.aliases?.isNotEmpty ? arg.aliases.stitchFront(", ") : ""
@@ -141,20 +189,20 @@ class {
     })
 
     if (optionDescriptions.isNotEmpty) {
-      str += "\n\nOPTIONS:\n"
+      str += "\n\nOptions:\n"
       str += optionDescriptions.join("\n")
     }
 
-    if (printHelpLine && (commands.isNotEmpty || options.isNotEmpty)) {
+    if (printHelpLine && (arguments.isNotEmpty || commands.isNotEmpty || options.isNotEmpty)) {
       let binaryName = breadcrumbs.first.name
 
-      if (options.isEmpty) {
-        str += "\n\nSee '#{binaryName} help#{breadcrumbs.skip(1).stitchFront(" ")} <COMMAND>' for more information on a specific command"
-      } else if (commands.isEmpty) {
-        str += "\n\nSee '#{binaryName} help#{breadcrumbs.skip(1).stitchFront(" ")} <OPTION>' for more information on a specific option"
-      } else {
-        str += "\n\nSee '#{binaryName} help#{breadcrumbs.skip(1).stitchFront(" ")} <COMMAND/OPTION>' for more information on a specific command or option"
-      }
+      let types = Array<String>():addAll([
+        arguments.isNotEmpty ? "argument" : null,
+        commands.isNotEmpty ? "command" : null,
+        options.isNotEmpty ? "option" : null,
+      ]).filterNull()
+
+      str += "\n\nSee '#{binaryName} help#{breadcrumbs.skip(1).stitchFront(" ")} <#{types.join("/")}>' for more information on a specific #{types.toEnglish("or")}"
     }
 
     return CliArgHelp(
@@ -177,5 +225,8 @@ class {
     }))
   }
 
-  override public toString() => values.count > 0 ? "#name #{values.join(" ")}" : name
+  override public toString() => name {
+    if (wildcard) return "<#{name}>"
+    if (values.isNotEmpty) return "#{name} #{values.join(" ")}"
+  }
 }

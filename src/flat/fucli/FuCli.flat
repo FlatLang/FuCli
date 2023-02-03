@@ -13,6 +13,8 @@ class {
   visible CliArg[] args => binaryArg.args
   visible String description => binaryArg.description
 
+  this[String argName] => binaryArg[argName]
+
   public construct(
     String binaryName,
     CliArg[] args,
@@ -37,6 +39,8 @@ class {
         usedArgs.add(arg)
         arg.enabled = true
 
+        if (arg.wildcard) arg.values.add(value)
+
         while (argsIterator.hasNext) {
           if (arg.values.count < arg.minCount) { // if not reached minimum values for argument yet
             arg.values.add(argsIterator.stepNext)
@@ -59,12 +63,10 @@ class {
   }
 
   getArg(String value) -> CliArg => null {
-    if (let childArg = usedArgs.lastNonNull({ _.getArg(value) })) {
-      return childArg
-    }
-    if (let globalArg = args.firstWhere({ _.matches(value) })) {
-      return globalArg
-    }
+    if (CliArg childArg = usedArgs.last?.getArg(value)) return childArg
+    if (CliArg globalArg = binaryArg.getArg(value)) return globalArg
+    if (CliArg childWildcardArg = usedArgs.last?.getWildcardArg(value)) return childWildcardArg
+    if (CliArg globalWildcardArg = binaryArg.getWildcardArg(value)) return globalWildcardArg
   }
 
   class InvalidCliArgumentException extends Exception {
