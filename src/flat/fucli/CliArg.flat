@@ -2,6 +2,9 @@ package flat/fucli
 
 import flat/log
 
+import static flat/colorizer/Colorizer
+import static flat/console/EscapeCode
+
 class {
   static Logger log = Logger(CliArg.class)
 
@@ -102,30 +105,64 @@ class {
       .first
   }
 
+  static header(
+    String value,
+    Bool formatted,
+    String prefix = "",
+    String suffix = ""
+  ) -> String {
+    let upper = prefix + value.toUpperCase() + suffix
+
+    return formatted ? yellow(upper) : upper
+  }
+
+  static argument(
+    String arg,
+    Bool formatted,
+    String prefix = "",
+    String suffix = ""
+  ) -> String {
+    let value = prefix + arg + suffix
+
+    return formatted ? cyan(value) : value
+  }
+
+  static option(
+    String option,
+    Bool formatted,
+    String prefix = "",
+    String suffix = ""
+  ) -> String {
+    let value = prefix + option + suffix
+
+    return formatted ? gray(value) : value
+  }
+
   getUsageString(
     CliArg[] breadcrumbs,
     CliArg[] arguments,
     CliArg[] commands,
-    CliArg[] options
+    CliArg[] options,
+    Bool formatted
   ) -> String {
-    let usageValues = breadcrumbs.map({ _.toString() })
+    let usageValues = breadcrumbs.map({ argument(_x.toString(), _i > 0 && formatted) })
 
     if (arguments.count == 1) {
-      usageValues.add("<#{arguments.first.name}>")
+      usageValues.add(argument(arguments.first.toString(), formatted))
     } else if (arguments.isNotEmpty) {
-      usageValues.add("<arguments>")
+      usageValues.add(argument("arguments", formatted, "<", ">"))
     }
 
     if (commands.count == 1) {
-      usageValues.add("<#{commands.first.name}>")
+      usageValues.add(argument(commands.first.toString(), formatted, "<", ">"))
     } else if (commands.isNotEmpty) {
-      usageValues.add("<command>")
+      usageValues.add(argument("command", formatted, "<", ">"))
     }
 
     if (options.count == 1) {
-      usageValues.add("[#{options.first.name}]")
+      usageValues.add(option(options.first.toString(), formatted, "[", "]"))
     } else if (options.isNotEmpty) {
-      usageValues.add("[options]")
+      usageValues.add(option("options", formatted, "[", "]"))
     }
 
     return usageValues.join(" ")
@@ -149,20 +186,20 @@ class {
     let commands = args?.filter({ !_x.wildcard && !_x.name.startsWith("--") }) ?: Array()
     let options = args?.filter({ !_x.wildcard && _x.name.startsWith("--") }) ?: Array()
 
-    let usage = getUsageString(breadcrumbs, arguments, commands, options)
+    let usage = getUsageString(breadcrumbs, arguments, commands, options, formatted)
 
     str += "|
-      Usage:
+      #{header("Usage", formatted)}:
       #{gutter}#{usage}
       |"
 
-    let Int argumentsGutterSpace = arguments.max({ _x.name.count + 2 + (_x.aliases != null ? _x.aliases.sum({ _.count + 4 }) : 0) }) + gutterSize
+    let Int argumentsGutterSpace = arguments.max({ visibleCount(_x.name) + 2 + (_x.aliases != null ? _x.aliases.sum({ visibleCount(_) + 4 }) : 0) }) + gutterSize
 
     let argumentDescriptions = arguments.map((arg) => {
-      let argName = "<#{arg.name}>"
+      let argName = argument(arg.toString(), formatted)
 
       if (arg.description) {
-        let argGutter = " ".repeat(argumentsGutterSpace - argName.count)
+        let argGutter = " ".repeat(argumentsGutterSpace - visibleCount(argName))
         return "#{gutter}#{argName}#{argGutter}#{arg.description}"
       } else {
         return "#{gutter}#{argName}"
@@ -170,18 +207,20 @@ class {
     })
 
     if (argumentDescriptions.isNotEmpty) {
-      str += "\n\nArguments:\n"
+      str += "\n\n"
+      str += header("Arguments", formatted)
+      str += ":\n"
       str += argumentDescriptions.join("\n")
     }
 
-    let Int commandsGutterSpace = commands.max({ _x.name.count + (_x.aliases != null ? _x.aliases.sum({ _.count + 2 }) : 0) }) + gutterSize
+    let Int commandsGutterSpace = commands.max({ visibleCount(_x.name) + (_x.aliases != null ? _x.aliases.sum({ visibleCount(_) + 2 }) : 0) }) + gutterSize
 
     let commandDescriptions = commands.map((arg) => {
-      let aliases = arg.aliases?.isNotEmpty ? arg.aliases.stitchFront(", ") : ""
-      let argNames = "#{arg.name}#{aliases}"
+      let aliases = arg.aliases?.isNotEmpty ? arg.aliases.map({ argument(_, formatted) }).stitchFront(", ") : ""
+      let argNames = "#{argument(arg.toString(), formatted)}#{aliases}"
 
       if (arg.description) {
-        let argGutter = " ".repeat(commandsGutterSpace - argNames.count)
+        let argGutter = " ".repeat(commandsGutterSpace - visibleCount(argNames))
         return "#{gutter}#{argNames}#{argGutter}#{arg.description}"
       } else {
         return "#{gutter}#{argNames}"
@@ -189,18 +228,20 @@ class {
     })
 
     if (commandDescriptions.isNotEmpty) {
-      str += "\n\nCommands:\n"
+      str += "\n\n"
+      str += header("Commands", formatted)
+      str += ":\n"
       str += commandDescriptions.join("\n")
     }
 
-    let Int optionsGutterSpace = options.max({ _x.name.count + (_x.aliases != null ? _x.aliases.sum({ _.count + 2 }) : 0) }) + gutterSize
+    let Int optionsGutterSpace = options.max({ visibleCount(_x.name) + (_x.aliases != null ? _x.aliases.sum({ visibleCount(_) + 2 }) : 0) }) + gutterSize
 
     let optionDescriptions = options.map((arg) => {
-      let aliases = arg.aliases?.isNotEmpty ? arg.aliases.stitchFront(", ") : ""
-      let argNames = "#{arg.name}#{aliases}"
+      let aliases = arg.aliases?.isNotEmpty ? arg.aliases.map({ option(_, formatted) }).stitchFront(", ") : ""
+      let argNames = "#{option(arg.toString(), formatted)}#{aliases}"
 
       if (arg.description) {
-        let argGutter = " ".repeat(optionsGutterSpace - argNames.count)
+        let argGutter = " ".repeat(optionsGutterSpace - visibleCount(argNames))
         return "#{gutter}#{argNames}#{argGutter}#{arg.description}"
       } else {
         return "#{gutter}#{argNames}"
@@ -208,7 +249,9 @@ class {
     })
 
     if (optionDescriptions.isNotEmpty) {
-      str += "\n\nOptions:\n"
+      str += "\n\n"
+      str += header("Options", formatted)
+      str += ":\n"
       str += optionDescriptions.join("\n")
     }
 
