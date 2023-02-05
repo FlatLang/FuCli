@@ -93,21 +93,23 @@ class {
   }
 
   public getHelp(
-    Bool formatted = true
+    Bool formatted = true,
+    Int lineLength = 80
   ) -> CliArgHelp {
     let helpArgs = [binaryArg]
     helpArgs.addAll(usedArgs.skip(1))
 
-    return helpArgs.last.getHelp(helpArgs)
+    return helpArgs.last.getHelp(helpArgs, true, formatted, lineLength)
   }
 
   public getAllHelp(
-    Bool formatted = true
+    Bool formatted = true,
+    Int lineLength = 80
   ) -> CliArgHelp[] {
     let helpArgs = [binaryArg]
     helpArgs.addAll(usedArgs.skip(1))
 
-    return helpArgs.last.getAllHelp(helpArgs)
+    return helpArgs.last.getAllHelp(helpArgs, formatted, lineLength)
   }
 
   override public toString() => args.filter({ _.enabled }).join(" ")

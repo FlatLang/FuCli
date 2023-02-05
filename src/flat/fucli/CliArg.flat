@@ -171,7 +171,8 @@ class {
   public getHelp(
     CliArg[] breadcrumbs,
     Bool printHelpLine = true,
-    Bool formatted = true
+    Bool formatted = true,
+    Int lineLength = 80
   ) -> CliArgHelp {
     var str = ""
 
@@ -193,18 +194,12 @@ class {
       #{gutter}#{usage}
       |"
 
-    let Int argumentsGutterSpace = arguments.max({ visibleCount(_x.name) + 2 + (_x.aliases != null ? _x.aliases.sum({ visibleCount(_) + 4 }) : 0) }) + gutterSize
-
-    let argumentDescriptions = arguments.map((arg) => {
-      let argName = argument(arg.toString(), formatted)
-
-      if (arg.description) {
-        let argGutter = " ".repeat(argumentsGutterSpace - visibleCount(argName))
-        return "#{gutter}#{argName}#{argGutter}#{arg.description}"
-      } else {
-        return "#{gutter}#{argName}"
-      }
-    })
+    let argumentDescriptions = printDefinitions(
+      arguments,
+      gutter,
+      lineLength,
+      { "#{argument(_.toString(), formatted)}" }
+    )
 
     if (argumentDescriptions.isNotEmpty) {
       str += "\n\n"
@@ -213,19 +208,15 @@ class {
       str += argumentDescriptions.join("\n")
     }
 
-    let Int commandsGutterSpace = commands.max({ visibleCount(_x.name) + (_x.aliases != null ? _x.aliases.sum({ visibleCount(_) + 2 }) : 0) }) + gutterSize
-
-    let commandDescriptions = commands.map((arg) => {
-      let aliases = arg.aliases?.isNotEmpty ? arg.aliases.map({ argument(_, formatted) }).stitchFront(", ") : ""
-      let argNames = "#{argument(arg.toString(), formatted)}#{aliases}"
-
-      if (arg.description) {
-        let argGutter = " ".repeat(commandsGutterSpace - visibleCount(argNames))
-        return "#{gutter}#{argNames}#{argGutter}#{arg.description}"
-      } else {
-        return "#{gutter}#{argNames}"
+    let commandDescriptions = printDefinitions(
+      commands,
+      gutter,
+      lineLength,
+      (arg) => {
+        let aliases = arg.aliases?.isNotEmpty ? arg.aliases.map({ argument(_, formatted) }).stitchFront(", ") : ""
+        return "#{argument(arg.toString(), formatted)}#{aliases}"
       }
-    })
+    )
 
     if (commandDescriptions.isNotEmpty) {
       str += "\n\n"
@@ -234,19 +225,15 @@ class {
       str += commandDescriptions.join("\n")
     }
 
-    let Int optionsGutterSpace = options.max({ visibleCount(_x.name) + (_x.aliases != null ? _x.aliases.sum({ visibleCount(_) + 2 }) : 0) }) + gutterSize
-
-    let optionDescriptions = options.map((arg) => {
-      let aliases = arg.aliases?.isNotEmpty ? arg.aliases.map({ option(_, formatted) }).stitchFront(", ") : ""
-      let argNames = "#{option(arg.toString(), formatted)}#{aliases}"
-
-      if (arg.description) {
-        let argGutter = " ".repeat(optionsGutterSpace - visibleCount(argNames))
-        return "#{gutter}#{argNames}#{argGutter}#{arg.description}"
-      } else {
-        return "#{gutter}#{argNames}"
+    let optionDescriptions = printDefinitions(
+      options,
+      gutter,
+      lineLength,
+      (arg) => {
+        let aliases = arg.aliases?.isNotEmpty ? arg.aliases.map({ option(_, formatted) }).stitchFront(", ") : ""
+        return "#{option(arg.toString(), formatted)}#{aliases}"
       }
-    })
+    )
 
     if (optionDescriptions.isNotEmpty) {
       str += "\n\n"
@@ -264,7 +251,11 @@ class {
         options.isNotEmpty ? "option" : null,
       ]).filterNull()
 
-      str += "\n\nSee '#{binaryName} help#{breadcrumbs.skip(1).stitchFront(" ")} <#{types.join("/")}>' for more information on a specific #{types.toEnglish("or")}"
+      str += "\n\n"
+      str += wrapLine(
+        "See '#{binaryName} help#{breadcrumbs.skip(1).stitchFront(" ")} <#{types.join("/")}>' for more information on a specific #{types.toEnglish("or")}",
+        lineLength
+      ).join("\n")
     }
 
     return CliArgHelp(
@@ -276,15 +267,80 @@ class {
 
   public getAllHelp(
     CliArg[] breadcrumbs,
-    Bool formatted = true
+    Bool formatted = true,
+    Int lineLength = 80
   ) -> CliArgHelp[] {
-    let help = [getHelp(breadcrumbs, false, formatted)]
+    let help = [getHelp(breadcrumbs, false, formatted, lineLength)]
 
     if (!args || args.isEmpty) return help
 
     return help:addAll(args.flatMap((arg) => {
-      arg.getAllHelp(breadcrumbs.plus([arg]), formatted)
+      arg.getAllHelp(breadcrumbs.plus([arg]), formatted, lineLength)
     }))
+  }
+
+  printDefinitions(
+    CliArg[] args,
+    String gutter,
+    Int lineLength,
+    formatter(CliArg) -> String
+  ) -> String[] {
+    let Int gutterSpace = args.max({ visibleCount(formatter(_)) }) + gutter.count
+
+    return args.map((arg) => {
+      let key = formatter(arg)
+      let value = arg.description
+
+      if (!value) return "#{gutter}#{key}"
+
+      let argGutter = " ".repeat(gutterSpace - visibleCount(key))
+      let wrapIndentation = gutter + " ".repeat(visibleCount(key)) + argGutter
+
+      return wrapLine("#{gutter}#{key}#{argGutter}#{value}", lineLength, wrapIndentation).join("\n")
+    })
+  }
+
+  wrapLine(
+    String value,
+    Int lineLength,
+    String indentation = "",
+    Bool breakWord = true
+  ) -> String[] {
+    let vCount = visibleCount(value)
+    if (vCount <= lineLength) return [value]
+
+    var Int offset = 0
+
+    if (breakWord && vCount > lineLength) {
+      let nextChar = visibleSubstring(value, lineLength, lineLength + 1)[0]
+      var whitespace = false
+
+      match nextChar {
+        ' ' => '\n' => '\t' => '\r' => whitespace = true
+      }
+
+      if (!whitespace) {
+        while (offset < lineLength) {
+          let endChar = visibleSubstring(value, lineLength - 1 - offset, lineLength - offset)[0]
+
+          match endChar {
+            ' ' => '\n' => '\t' => '\r' => break
+            default => {
+              offset++
+              continue
+            }
+          }
+
+          break
+        }
+      }
+    }
+
+    let line = visibleSubstring(value, 0, lineLength - offset)
+    let remainder = indentation + visibleSubstring(value, lineLength - offset).trim()
+    let lines = [line]
+
+    return lines:addAll(wrapLine(remainder, lineLength, indentation))
   }
 
   override public toString() => name {
