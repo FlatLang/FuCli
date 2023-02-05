@@ -35,7 +35,8 @@ class {
     String: description = null,
     CliArg[]: args = null,
     Bool: wildcard = false,
-    Bool: required = false
+    Bool: required = false,
+    Bool: hidden = false
   ) {
     this(
       name,
@@ -56,7 +57,8 @@ class {
     String: description = null,
     CliArg[]: args = null,
     Bool: wildcard = false,
-    Bool: required = false
+    Bool: required = false,
+    Bool: hidden = false
   ) {
     this(
       name,
@@ -78,7 +80,8 @@ class {
     visible String: description = null,
     visible CliArg[]: args = null,
     visible Bool: wildcard = false,
-    visible Bool: required = false
+    visible Bool: required = false,
+    visible Bool: hidden = false
   ) {}
 
   public matches(String value) => wildcard || value == name || aliases.any({ value == _ })
@@ -183,9 +186,11 @@ class {
     let gutterSize = 4
     let gutter = " ".repeat(gutterSize)
 
-    let arguments = args?.filter({ _.wildcard }) ?: Array()
-    let commands = args?.filter({ !_x.wildcard && !_x.name.startsWith("--") }) ?: Array()
-    let options = args?.filter({ !_x.wildcard && _x.name.startsWith("--") }) ?: Array()
+    let visibleArgs = args?.filter({ !_.hidden }) ?: Array()
+
+    let arguments = visibleArgs.filter({ _.wildcard })
+    let commands = visibleArgs.filter({ !_x.wildcard && !_x.name.startsWith("--") })
+    let options = visibleArgs.filter({ !_x.wildcard && _x.name.startsWith("--") })
 
     let usage = getUsageString(breadcrumbs, arguments, commands, options, formatted)
 
