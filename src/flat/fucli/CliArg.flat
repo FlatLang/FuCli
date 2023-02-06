@@ -305,49 +305,6 @@ class {
     })
   }
 
-  wrapLine(
-    String value,
-    Int lineLength,
-    String indentation = "",
-    Bool breakWord = true
-  ) -> String[] {
-    let vCount = visibleCount(value)
-    if (vCount <= lineLength) return [value]
-
-    var Int offset = 0
-
-    if (breakWord && vCount > lineLength) {
-      let nextChar = visibleSubstring(value, lineLength, lineLength + 1)[0]
-      var whitespace = false
-
-      match nextChar {
-        ' ' => '\n' => '\t' => '\r' => whitespace = true
-      }
-
-      if (!whitespace) {
-        while (offset < lineLength) {
-          let endChar = visibleSubstring(value, lineLength - 1 - offset, lineLength - offset)[0]
-
-          match endChar {
-            ' ' => '\n' => '\t' => '\r' => break
-            default => {
-              offset++
-              continue
-            }
-          }
-
-          break
-        }
-      }
-    }
-
-    let line = visibleSubstring(value, 0, lineLength - offset)
-    let remainder = indentation + visibleSubstring(value, lineLength - offset).trim()
-    let lines = [line]
-
-    return lines:addAll(wrapLine(remainder, lineLength, indentation))
-  }
-
   override public toString() => name {
     if (wildcard) return "<#{name}>"
     if (values.isNotEmpty) return "#{name} #{values.join(" ")}"
