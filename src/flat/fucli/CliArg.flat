@@ -180,7 +180,8 @@ class {
     var str = ""
 
     if (description) {
-      str += "#{description}\n\n"
+      str += wrapLine(description, lineLength).join("\n")
+      str += "\n\n"
     }
 
     let gutterSize = 4
@@ -196,7 +197,7 @@ class {
 
     str += "|
       #{header("Usage", formatted)}:
-      #{gutter}#{usage}
+      #{wrapLine(gutter + usage, lineLength, gutter).join("\n")}
       |"
 
     let argumentDescriptions = printDefinitions(
