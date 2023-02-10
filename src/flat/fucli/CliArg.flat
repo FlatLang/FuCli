@@ -84,6 +84,25 @@ class {
     visible Bool: hidden = false
   ) {}
 
+  public static wildcard(
+    String name,
+    String[] aliases = Array<String>(),
+    Int: count = 1,
+    String: description = null,
+    CliArg[]: args = null,
+    Bool: required = false,
+    Bool: hidden = false
+  ) => CliArg(
+    name,
+    aliases,
+    count,
+    description,
+    args,
+    required,
+    wildcard: true,
+    hidden
+  )
+
   public matches(String value) => wildcard || value == name || aliases.any({ value == _ })
 
   public getArg(String value) -> CliArg => null {
