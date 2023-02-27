@@ -112,5 +112,7 @@ class {
     return helpArgs.last.getAllHelp(helpArgs, formatted, lineLength)
   }
 
-  override public toString() => args.filter({ _.enabled }).join(" ")
+  override public toString() => usedArgs.stream()
+    .map({ _x.values.isNotEmpty ? _x.values.join(" ") : _x.toString() })
+    .join(" ")
 }
