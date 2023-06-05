@@ -46,7 +46,8 @@ class {
       description: description,
       args: args,
       wildcard: wildcard,
-      required: required
+      required: required,
+      hidden: hidden
     )
   }
 
@@ -68,7 +69,8 @@ class {
       description: description,
       args: args,
       wildcard: wildcard,
-      required: required
+      required: required,
+      hidden: hidden
     )
   }
 
