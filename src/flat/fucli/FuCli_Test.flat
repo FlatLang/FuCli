@@ -3,9 +3,9 @@ package flat/fucli
 import flat/fucli/FuCli
 
 testable class {
-  test `can create`() {
-    let value = FuCli("fucli", Array())
+    test `can create`() {
+        let value = FuCli("fucli", Array())
 
-    expect(value).toNotBe(null)
-  }
+        expect(value).toNotBe(null)
+    }
 }
