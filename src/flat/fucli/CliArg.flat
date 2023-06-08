@@ -35,7 +35,7 @@ class {
         String: description = null,
         CliArg[]: args = null,
         Bool: wildcard = false,
-        Bool: eager = false,
+        Bool: greedy = false,
         Bool: required = false,
         Bool: hidden = false
     ) {
@@ -47,7 +47,7 @@ class {
             description: description,
             args: args,
             wildcard: wildcard,
-            eager: eager,
+            greedy: greedy,
             required: required,
             hidden: hidden
         )
@@ -60,7 +60,7 @@ class {
         String: description = null,
         CliArg[]: args = null,
         Bool: wildcard = false,
-        Bool: eager = false,
+        Bool: greedy = false,
         Bool: required = false,
         Bool: hidden = false
     ) {
@@ -72,7 +72,7 @@ class {
             description: description,
             args: args,
             wildcard: wildcard,
-            eager: eager,
+            greedy: greedy,
             required: required,
             hidden: hidden
         )
@@ -86,7 +86,7 @@ class {
         visible String: description = null,
         visible CliArg[]: args = null,
         visible Bool: wildcard = false,
-        visible Bool: eager = false,
+        visible Bool: greedy = false,
         visible Bool: required = false,
         visible Bool: hidden = false
     ) {}
@@ -97,7 +97,7 @@ class {
         Int: count = 1,
         String: description = null,
         CliArg[]: args = null,
-        Bool: eager = false,
+        Bool: greedy = false,
         Bool: required = false,
         Bool: hidden = false
     ) => CliArg(
@@ -108,7 +108,7 @@ class {
         args,
         required,
         wildcard: true,
-        eager,
+        greedy,
         hidden
     )
 

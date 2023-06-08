@@ -69,9 +69,9 @@ class {
 
     getArg(String value) -> CliArg => null {
         let lastUsed = usedArgs.lastWhere({ _.args != null })
-        Bool eager = lastUsed?.eager ?: false
+        Bool greedy = lastUsed?.greedy ?: false
         
-        if (eager) {
+        if (greedy) {
             log.debug("Searching non-wildcard sub-arguments for #{usedArgs.lastWhere({ _.args != null })}")
             if (CliArg childArg = lastUsed?.getArg(value)) return childArg
             log.debug("Searching wildcard sub-arguments for #{usedArgs.lastWhere({ _.args != null })}")
