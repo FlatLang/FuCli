@@ -68,14 +68,28 @@ class {
     }
 
     getArg(String value) -> CliArg => null {
-        log.debug("Searching non-wildcard sub-arguments for #{usedArgs.lastWhere({ _.args != null })}")
-        if (CliArg childArg = usedArgs.lastWhere({ _.args != null })?.getArg(value)) return childArg
-        log.debug("Searching non-wildcard global arguments")
-        if (CliArg globalArg = binaryArg.getArg(value)) return globalArg
-        log.debug("Searching wildcard sub-arguments for #{usedArgs.lastWhere({ _.args != null })}")
-        if (CliArg childWildcardArg = usedArgs.lastWhere({ _.args != null })?.getWildcardArg(value)) return childWildcardArg
-        log.debug("Searching wildcard global arguments")
-        if (CliArg globalWildcardArg = binaryArg.getWildcardArg(value)) return globalWildcardArg
+        let lastUsed = usedArgs.lastWhere({ _.args != null })
+        Bool eager = lastUsed?.eager ?: false
+        
+        if (eager) {
+            log.debug("Searching non-wildcard sub-arguments for #{usedArgs.lastWhere({ _.args != null })}")
+            if (CliArg childArg = lastUsed?.getArg(value)) return childArg
+            log.debug("Searching wildcard sub-arguments for #{usedArgs.lastWhere({ _.args != null })}")
+            if (CliArg childWildcardArg = lastUsed?.getWildcardArg(value)) return childWildcardArg
+            log.debug("Searching non-wildcard global arguments")
+            if (CliArg globalArg = binaryArg.getArg(value)) return globalArg
+            log.debug("Searching wildcard global arguments")
+            if (CliArg globalWildcardArg = binaryArg.getWildcardArg(value)) return globalWildcardArg
+        } else {
+            log.debug("Searching non-wildcard sub-arguments for #{usedArgs.lastWhere({ _.args != null })}")
+            if (CliArg childArg = lastUsed?.getArg(value)) return childArg
+            log.debug("Searching non-wildcard global arguments")
+            if (CliArg globalArg = binaryArg.getArg(value)) return globalArg
+            log.debug("Searching wildcard sub-arguments for #{usedArgs.lastWhere({ _.args != null })}")
+            if (CliArg childWildcardArg = lastUsed?.getWildcardArg(value)) return childWildcardArg
+            log.debug("Searching wildcard global arguments")
+            if (CliArg globalWildcardArg = binaryArg.getWildcardArg(value)) return globalWildcardArg
+        }
     }
 
     class InvalidCliArgumentException extends Exception {
