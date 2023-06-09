@@ -304,6 +304,8 @@ class {
         Bool formatted = true,
         Int lineLength = 80
     ) -> CliArgHelp[] {
+        if (hidden) return Array()
+
         let help = [getHelp(breadcrumbs, false, formatted, lineLength)]
 
         if (!args || args.isEmpty) return help
