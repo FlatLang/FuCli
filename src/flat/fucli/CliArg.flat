@@ -106,9 +106,9 @@ class {
         count,
         description,
         args,
-        required,
         wildcard: true,
         greedy,
+        required,
         hidden
     )
 
